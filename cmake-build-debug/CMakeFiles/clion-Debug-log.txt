@@ -1,0 +1,4 @@
+/Users/josemata/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Users/josemata/Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -G Ninja -S "/Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590" -B "/Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590/cmake-build-debug"
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590/cmake-build-debug

@@ -1,0 +1,3 @@
+/Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590/cmake-build-debug/CMakeFiles/JoseMata_Project2_COMP590.dir
+/Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/josemata/Documents/COMP 590 - Computer Architecture/Project 2/JoseMata_Project2_COMP590/cmake-build-debug/CMakeFiles/rebuild_cache.dir
