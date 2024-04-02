@@ -4,23 +4,128 @@
 #include <fstream>
 
 using namespace std;
-//unsigned char rom[]={0x06,0x06,0x3e,0x00,0x80,0x05,0xc2,0x04,0x00,0x76};
+//PART OF STEP 1: unsigned char rom[]={0x06,0x06,0x3e,0x00,0x80,0x05,0xc2,0x04,0x00,0x76};
 char* rom;  //Needed later to read the testrom.gb file
 int romSize; //Needed later to read the testrom.gb file
 
-//The following declarations were copied-and-pasted from the instructions:
+//PART OF STEP 2: The following declarations were copied-and-pasted from the instructions:
 unsigned char graphicsRAM[8192];
 int palette[4];
 int tileset, tilemap, scrollx, scrolly;
 
-//The declaration of "Screen" below was taken from Dr.Black's "gameboy.cpp" file in her "db" folder.
+//PART OF STEP 2: The declaration of "Screen" below was taken from Dr.Black's "gameboy.cpp" file in her "db" folder.
 int Screen[160][144];
 
-unsigned char memoryRead(int address){
-     return rom[address];
+//PART OF STEP 3: The following declarations were copied-and-pasted from the instructions:
+int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3;
+unsigned char workingRAM[0x2000];
+
+unsigned char page0RAM[0x80];
+
+int line=0, cmpline=0, videostate=0, keyboardColumn=0, horizontal=0;
+int gpuMode=HBLANK;
+int romOffset = 0x4000;
+long totalInstructions=0;
+
+//PART OF STEP 3: The following functions were copied-and-pasted from the instructions:
+unsigned char getKey() { return 0xf; }
+void setRomMode(int address, unsigned char b) { }
+void setControlByte(unsigned char b) {
+    tilemap=(b&8)!=0?1:0;
+    tileset=(b&16)!=0?1:0;
+}
+void setPalette(unsigned char b) {
+    palette[0]=b&3; palette[1]=(b>>2)&3; palette[2]=(b>>4)&3; palette[3]=(b>>6)&3;}
+
+unsigned char getVideoState() {
+    int by=0;
+    if(line==cmpline) by|=4;
+    if(gpuMode==VBLANK) by|=1;
+    if(gpuMode==SPRITE) by|=2;
+    if(gpuMode==VRAM) by|=3;
+    return (unsigned char)((by|(videostate&0xf8))&0xff);
 }
 
-void memoryWrite(int address, unsigned char b){}
+
+    unsigned char memoryRead(int address){
+     //PART OF STEP 1: return rom[address];
+
+     //PART OF STEP 3:
+     if (address <=0x3FFF){
+         return rom[address];
+     }
+    if (address >= 0x4000 && address <= 0x7FFF){
+        return rom[romOffset + address%0x4000];
+    }
+    if (address >= 0x8000 && address <= 0x9FFF){
+        return graphicsRAM[address%0x2000];
+    }
+    if (address >= 0xC000 && address <= 0xDFFF){
+        return workingRAM[address%0x2000];
+    }
+    if (address >= 0xFF80 && address <= 0xFFFF){
+        return page0RAM[address%0x80];
+    }
+    if (address == 0xFF00){
+        return getKey();
+    }
+    if (address == 0xFF41){
+        return getVideoState();
+    }
+    if (address == 0xFF42){
+        return scrolly;
+    }
+    if (address == 0xFF43){
+        return scrollx;
+    }
+    if (address == 0xFF44){
+        return line;
+    }
+    if (address == 0xFF45){
+        return cmpline;
+    }
+    return 0;
+}
+
+void memoryWrite(int address, unsigned char b){
+    //PART OF STEP3:
+    if (address <= 0x3FFF){
+        setRomMode(address, b);
+    }
+    if (address >= 0x8000 && address <= 0x9FFF){
+        graphicsRAM[address%0x2000]=b;
+    }
+    if (address >= 0xC000 && address <= 0xDFFF){
+        workingRAM[address%0x2000]=b;
+    }
+    if (address >= 0xFF80 && address <= 0xFFFF){
+        page0RAM[address%0x80]=b;
+    }
+    if (address == 0xFF40){
+        setControlByte(b);
+    }
+    if (address == 0xFF00){
+        keyboardColumn = b;
+    }
+    if (address == 0xFF41){
+        videostate=b;
+    }
+    if (address == 0xFF42){
+        scrolly=b;
+    }
+    if (address == 0xFF43){
+        scrollx = b;
+    }
+    if (address == 0xFF44){
+        line = b;
+    }
+    if (address == 0xFF45){
+        cmpline=b;
+    }
+    if (address == 0xFF47){
+        setPalette(b);
+    }
+}
 
 //The template for the function renderScreen was taken from Dr.Black's "gameboy.cpp" file in her "db" folder.
 void renderScreen()
