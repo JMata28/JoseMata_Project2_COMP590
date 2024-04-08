@@ -214,7 +214,7 @@ void renderScreen()
 
 int main() {
     //The set of lines below was copied and pasted from the Word document with the instructions of Project 2
-    ifstream romfile("../testrom.gb", ios::in|ios::binary|ios::ate); //The modes here specify that the file is open for input operations, is opened in binary mode instead of text mode, and that the initial position is set at the end of the file
+    ifstream romfile("../ttt.gb", ios::in|ios::binary|ios::ate); //The modes here specify that the file is open for input operations, is opened in binary mode instead of text mode, and that the initial position is set at the end of the file
     streampos size=romfile.tellg();
     rom=new char[size]; //Should there be a "delete" after this line to avoid memory leaks since it includes the new operator? https://stackoverflow.com/questions/655065/when-should-i-use-the-new-keyword-in-c
     romSize=size;
@@ -226,6 +226,7 @@ int main() {
                        memoryWrite); //Should there be a "delete" after this line to avoid memory leaks since it includes the new operator? https://stackoverflow.com/questions/655065/when-should-i-use-the-new-keyword-in-c
 
     z80->reset();
+    //PART OF STEP 1 (no longer needed):
 //    while (z80->halted != true) {
 //        z80->doInstruction();
 //        cout << "PC: " << z80->PC << endl;
@@ -233,24 +234,64 @@ int main() {
 //        cout << "B: " << z80->B << endl;
 //    }
 
-    //Read the first 8192 integers from screendump into graphicsRAM. (This section of code below was copied-and pasted from project instructions)
-    int n;
-    ifstream vidfile("../screendump.txt",ios::in);
-    for(int i=0; i<8192; i++){
-        int n;
-        vidfile>>n;
-        graphicsRAM[i]=(unsigned char)n;
+//PART OF STEP 3B:
+    while (z80->halted != true){
+        //do an instruction
+        z80 -> doInstruction();
+
+        //check for and handle interrupts
+        if(z80->interrupt_deferred>0)
+        {
+            z80->interrupt_deferred--;
+            if(z80->interrupt_deferred==1)
+            {
+                z80->interrupt_deferred=0;
+                z80->FLAG_I=1;
+            }
+        }
+        z80->checkForInterrupts();
+
+        //	figure out the screen position and set the video mode
+        horizontal = (int) ((totalInstructions+1)%61);
+        if (line >= 145){gpuMode = VBLANK;}
+        else if (horizontal <= 30){gpuMode = HBLANK;}
+        else if (horizontal >= 31 && horizontal <= 40){gpuMode=SPRITE;}
+        else gpuMode = VRAM;
+
+        if (horizontal ==0 ){
+            line++;
+            if (line == 144){
+                z80->throwInterrupt(1);
+            }
+            if ((line%153 == cmpline) && ((videostate&0x40)!=0)){
+                z80->throwInterrupt(2);
+            }
+            if (line ==153){
+                line = 0;
+                renderScreen();
+            }
+        }
+        totalInstructions++;
     }
-
-//Read the other variables (This section of code below was copied-and pasted from project instructions)
-    vidfile >> tileset;
-    vidfile >> tilemap;
-    vidfile >> scrollx;
-    vidfile >> scrolly;
-    vidfile >> palette[0];
-    vidfile >> palette[1];
-    vidfile >> palette[2];
-    vidfile >> palette[3];
-
-    renderScreen();
+// PART2:
+//    //Read the first 8192 integers from screendump into graphicsRAM. (This section of code below was copied-and pasted from project instructions)
+//    int n;
+//    ifstream vidfile("../screendump.txt",ios::in);
+//    for(int i=0; i<8192; i++){
+//        int n;
+//        vidfile>>n;
+//        graphicsRAM[i]=(unsigned char)n;
+//    }
+//
+// //Read the other variables (This section of code below was copied-and pasted from project instructions)
+//    vidfile >> tileset;
+//    vidfile >> tilemap;
+//    vidfile >> scrollx;
+//    vidfile >> scrolly;
+//    vidfile >> palette[0];
+//    vidfile >> palette[1];
+//    vidfile >> palette[2];
+//    vidfile >> palette[3];
+//
+//    renderScreen();
 }
